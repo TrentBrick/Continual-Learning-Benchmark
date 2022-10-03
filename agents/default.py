@@ -147,6 +147,7 @@ class NormalNN(nn.Module):
         loss = self.criterion(out, targets, tasks)
         self.optimizer.zero_grad()
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.parameters(), 1.0)
         self.optimizer.step()
         return loss.detach(), out
 
@@ -166,7 +167,7 @@ class NormalNN(nn.Module):
             # Config the model and optimizer
             self.log('Epoch:{0}'.format(epoch))
             self.model.train()
-            self.scheduler.step(epoch)
+            #self.scheduler.step(epoch)
             for param_group in self.optimizer.param_groups:
                 self.log('LR:',param_group['lr'])
 
@@ -213,10 +214,11 @@ class NormalNN(nn.Module):
 
     def add_valid_output_dim(self, dim=0):
         # This function is kind of ad-hoc, but it is the simplest way to support incremental class learning
+        self.valid_out_dim = 10
         self.log('Incremental class: Old valid output dimension:', self.valid_out_dim)
-        if self.valid_out_dim == 'ALL':
+        '''if self.valid_out_dim == 'ALL':
             self.valid_out_dim = 0  # Initialize it with zero
-        self.valid_out_dim += dim
+        self.valid_out_dim += dim'''
         self.log('Incremental class: New Valid output dimension:', self.valid_out_dim)
         return self.valid_out_dim
 

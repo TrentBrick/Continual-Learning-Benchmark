@@ -5,19 +5,19 @@ from .wrapper import CacheClassLabel
 def MNIST(dataroot, train_aug=False):
     # Add padding to make 32x32
     #normalize = transforms.Normalize(mean=(0.1307,), std=(0.3081,))  # for 28x28
-    normalize = transforms.Normalize(mean=(0.1000,), std=(0.2752,))  # for 32x32
+    #normalize = transforms.Normalize(mean=(0.1000,), std=(0.2752,))  # for 32x32
 
     val_transform = transforms.Compose([
         transforms.Pad(2, fill=0, padding_mode='constant'),
         transforms.ToTensor(),
-        normalize,
+        #normalize,
     ])
     train_transform = val_transform
     if train_aug:
         train_transform = transforms.Compose([
             transforms.RandomCrop(32, padding=4),
             transforms.ToTensor(),
-            normalize,
+            #normalize,
         ])
 
     train_dataset = torchvision.datasets.MNIST(

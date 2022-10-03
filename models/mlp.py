@@ -11,9 +11,9 @@ class MLP(nn.Module):
             nn.Linear(self.in_dim, hidden_dim),
             #nn.BatchNorm1d(hidden_dim),
             nn.ReLU(inplace=True),
-            nn.Linear(hidden_dim, hidden_dim),
+            #nn.Linear(hidden_dim, hidden_dim),
             #nn.BatchNorm1d(hidden_dim),
-            nn.ReLU(inplace=True),
+            #nn.ReLU(inplace=True),
         )
         self.last = nn.Linear(hidden_dim, out_dim)  # Subject to be replaced dependent on task
 

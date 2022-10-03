@@ -1,7 +1,16 @@
 import torch
 import random
 from .default import NormalNN
+from torch.nn import functional as F
 
+use_softmax = True 
+beta = 1.0 #0.005 
+
+def softmax_cross_entropy(output, y):
+    # this would be if it was unsupervised. 
+    #label = output.max(1)[1].view(-1)
+    out_log_sms = F.log_softmax(output*beta, dim=1)
+    return F.nll_loss(out_log_sms, y, reduction='sum')
 
 class L2(NormalNN):
     """
@@ -103,11 +112,13 @@ class EWC(L2):
         # Sample a subset (n_fisher_sample) of data to estimate the fisher information (batch_size=1)
         # Otherwise it uses mini-batches for the estimation. This speeds up the process a lot with similar performance.
         if self.n_fisher_sample is not None:
-            n_sample = min(self.n_fisher_sample, len(dataloader.dataset))
+            batch_size = 512
+
+            n_sample = 5*batch_size#min(self.n_fisher_sample, len(dataloader.dataset))
             self.log('Sample',self.n_fisher_sample,'for estimating the F matrix.')
             rand_ind = random.sample(list(range(len(dataloader.dataset))), n_sample)
             subdata = torch.utils.data.Subset(dataloader.dataset, rand_ind)
-            dataloader = torch.utils.data.DataLoader(subdata, shuffle=True, num_workers=2, batch_size=1)
+            dataloader = torch.utils.data.DataLoader(subdata, shuffle=True, num_workers=2, batch_size=batch_size)
 
         mode = self.training
         self.eval()
@@ -139,12 +150,18 @@ class EWC(L2):
             if self.empFI:  # Use groundtruth label (default is without this)
                 ind = target
 
-            loss = self.criterion(preds, ind, task, regularization=False)
+            if use_softmax:
+                loss = softmax_cross_entropy(pred, ind)
+                nc = 1/n_sample
+            else: 
+                loss = self.criterion(preds, ind, task, regularization=False)
+                nc = len(input) / len(dataloader)
+
             self.model.zero_grad()
             loss.backward()
             for n, p in importance.items():
                 if self.params[n].grad is not None:  # Some heads can have no grad if no loss applied on them.
-                    p += ((self.params[n].grad ** 2) * len(input) / len(dataloader))
+                    p += ((self.params[n].grad ** 2) * nc)
 
         self.train(mode=mode)
 
