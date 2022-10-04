@@ -33,7 +33,9 @@ def run(args):
                     'out_dim':{'All':args.force_out_dim} if args.force_out_dim>0 else task_output_space,
                     'optimizer':args.optimizer,
                     'print_freq':args.print_freq, 'gpuid': args.gpuid,
-                    'reg_coef':args.reg_coef}
+                    'reg_coef':args.reg_coef,
+                    'use_beta_coef':args.use_beta_coef[0],
+                    'beta_coef':args.beta_coef[0]}
     agent = agents.__dict__[args.agent_type].__dict__[args.agent_name](agent_config)
     print(agent.model)
     print('#parameter of model:',agent.count_parameter())
@@ -92,6 +94,12 @@ def run(args):
 def get_args(argv):
     # This function prepares the variables shared across demo.py
     parser = argparse.ArgumentParser()
+
+    parser.add_argument('--use_beta_coef', nargs="+", type=bool, default=True,
+                        help="Use beta coefficient when computing weight importances.")
+    parser.add_argument('--beta_coef', nargs="+", type=float, default=1.0,
+                        help="Size of beta coefficient")
+
     parser.add_argument('--gpuid', nargs="+", type=int, default=[0],
                         help="The list of gpuid, ex:--gpuid 3 1. Negative value means cpu-only")
     parser.add_argument('--model_type', type=str, default='mlp', help="The type (mlp|lenet|vgg|resnet) of backbone network")

@@ -3,10 +3,10 @@ import random
 from .default import NormalNN
 from torch.nn import functional as F
 
-use_softmax = True 
-beta = 1.0 #0.005 
+#use_beta_coef = True 
+#beta = 1.0 #0.005 
 
-def softmax_cross_entropy(output, y):
+def softmax_cross_entropy(output, y, beta):
     # this would be if it was unsupervised. 
     #label = output.max(1)[1].view(-1)
     out_log_sms = F.log_softmax(output*beta, dim=1)
@@ -150,8 +150,8 @@ class EWC(L2):
             if self.empFI:  # Use groundtruth label (default is without this)
                 ind = target
 
-            if use_softmax:
-                loss = softmax_cross_entropy(pred, ind)
+            if self.config['use_beta_coef']:
+                loss = softmax_cross_entropy(pred, ind, self.config['beta_coef'])
                 nc = 1/n_sample
             else: 
                 loss = self.criterion(preds, ind, task, regularization=False)
